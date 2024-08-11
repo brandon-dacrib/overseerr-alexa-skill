@@ -3,30 +3,69 @@ import os
 import urllib.parse
 import json
 import logging
+import boto3
+from botocore.exceptions import ClientError
 
 # Set up logging
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
 logging.basicConfig(level=LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-# Get Overseerr API details from environment variables
-OVERSEERR_URL = os.environ.get('OVERSEERR_URL')
-OVERSEERR_API_KEY = os.environ.get('OVERSEERR_API_KEY')
+# Initialize DynamoDB client
+dynamodb = boto3.client('dynamodb', region_name=os.environ.get('DYNAMODB_PERSISTENCE_REGION'))
+
+# Function to fetch configuration from DynamoDB
+def fetch_config_from_dynamodb():
+    table_name = os.environ.get('DYNAMODB_PERSISTENCE_TABLE_NAME')
+    if not table_name:
+        raise ValueError("DYNAMODB_PERSISTENCE_TABLE_NAME environment variable is not set")
+
+    # Set the key for the DynamoDB query
+    key = {'id': {'S': 'amzn1.ask.account.AMAQOAHY55IP7CPFL4DXCPGBE3AHFF4ZGV7RULCMEE2ON2QUYDMSJIKOUEKN6DDIRFD5S46WSHAQCKZMWSCROSQEFWUZHEZBVJVSU7TTEHGHXTE6KL3VFCZYFFNOTQI6ZOWBWCWANBO2JMWLKZ2VG3WA25MM6JW2263BWJVQ5Z3H7ZV4BYFTIOIPESELENYSGRPQNEMHV7TWQVXMARYJJVJ4TH5FVW7RA2GMFH6TD27A'}}
+    logger.debug(f"Fetching config from DynamoDB table '{table_name}' with key: {key}")
+
+    try:
+        response = dynamodb.get_item(TableName=table_name, Key=key)
+        item = response.get('Item', {})
+        logger.debug(f"DynamoDB response: {item}")
+        return {
+            'OVERSEERR_URL': item.get('OVERSEERR_URL', {}).get('S'),
+            'OVERSEERR_API_KEY': item.get('OVERSEERR_API_KEY', {}).get('S')
+        }
+    except ClientError as e:
+        logger.error(f"Failed to fetch config from DynamoDB: {e}")
+        return {}
+
+# Fetch configuration
+config = fetch_config_from_dynamodb()
+
+# Get Overseerr API details, prioritizing environment variables
+OVERSEERR_URL = os.environ.get('OVERSEERR_URL', config.get('OVERSEERR_URL'))
+OVERSEERR_API_KEY = os.environ.get('OVERSEERR_API_KEY', config.get('OVERSEERR_API_KEY'))
 
 # Check if the URL and API key are set
 if not OVERSEERR_URL:
-    logger.error("I can't find the Overseerr URL. Please set the OVERSEERR_URL environment variable.")
-    raise ValueError("Missing OVERSEERR_URL environment variable")
+    logger.error("I can't find the Overseerr URL. Please set the OVERSEERR_URL environment variable or configure it in DynamoDB.")
+    raise ValueError("Missing OVERSEERR_URL configuration")
 
 if not OVERSEERR_API_KEY:
-    logger.error("I can't find the API key. Please set the OVERSEERR_API_KEY environment variable.")
-    raise ValueError("Missing OVERSEERR_API_KEY environment variable")
+    logger.error("I can't find the API key. Please set the OVERSEERR_API_KEY environment variable or configure it in DynamoDB.")
+    raise ValueError("Missing OVERSEERR_API_KEY configuration")
 
 def lambda_handler(event, context):
-    # Extract parameters from the event
+    # Log the userId for debugging purposes
+    user_id = event['context']['System']['user']['userId']
+    logger.info(f"Request received from userId: {user_id}")
+
+    # Ensure the request is an IntentRequest
+    if event['request']['type'] != 'IntentRequest':
+        return build_response("I'm sorry, I can only handle intent requests.")
+
+    # Extract parameters from the intent
     intent = event['request']['intent']
-    media_title = intent['slots'].get('MediaTitle', {}).get('value', '')
-    request_all_seasons = intent['slots'].get('all', {}).get('value', 'false').lower() == 'true'
+    slots = intent.get('slots', {})
+    media_title = slots.get('MediaTitle', {}).get('value', '')
+    request_all_seasons = slots.get('all', {}).get('value', 'false').lower() == 'true'
 
     if not media_title:
         return build_response("Please provide the title of the movie or TV show.")
@@ -122,10 +161,12 @@ def lambda_handler(event, context):
             return build_response("I couldn't add your request. Please check the details and try again.")
 
     except requests.exceptions.RequestException as e:
-        logger.error(f"An error occurred: {e}")
+        error_message = f"An error occurred: {e}"
+        logger.error(error_message)
         if hasattr(e, 'response'):
             logger.error(f"Server response: {e.response.text}")
-        return build_response("An error occurred while processing your request. Please try again later.")
+            error_message += f" Server response: {e.response.text}"
+        return build_response(error_message)
 
 def build_response(output):
     return {
