@@ -1,0 +1,131 @@
+{
+  "interactionModel": {
+    "dialog": {
+      "intents": [
+        {
+          "slots": [
+            {
+              "name": "MediaTitle",
+              "elicitationRequired": true,
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1701307936620.257031659198"
+              }
+            }
+          ],
+          "name": "AddMediaIntent",
+          "confirmationRequired": false,
+          "prompts": {}
+        }
+      ],
+      "delegationStrategy": "ALWAYS"
+    },
+    "languageModel": {
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "slots": [],
+          "name": "HelloWorldIntent",
+          "samples": [
+            "hello",
+            "how are you",
+            "say hi world",
+            "say hi",
+            "hi",
+            "say hello world",
+            "say hello"
+          ]
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "slots": [
+            {
+              "name": "MediaTitle",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "Go and get {MediaTitle}",
+                "I want to watch {MediaTitle}",
+                "add {MediaTitle}",
+                "grab {MediaTitle}",
+                "download {MediaTitle}"
+              ]
+            }
+          ],
+          "name": "AddMediaIntent",
+          "samples": [
+            "Get the tv show {MediaTitle}",
+            "Get the movie {MediaTitle}",
+            "Go and get {MediaTitle}",
+            "Fetch {MediaTitle}",
+            "Go get {MediaTitle}",
+            "Add the movie {MediaTitle}",
+            "Add the tv show {MediaTitle}",
+            "Download  {MediaTitle}",
+            "Grab  {MediaTitle}",
+            "Add  {MediaTitle}"
+          ]
+        },
+        {
+          "slots": [
+            {
+              "name": "Selection",
+              "type": "AMAZON.NUMBER"
+            }
+          ],
+          "name": "SelectMediaIntent",
+          "samples": [
+            "Number {Selection}"
+          ]
+        }
+      ],
+      "types": [],
+      "invocationName": "plex manager"
+    },
+    "prompts": [
+      {
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Would you like me to get {MediaTitle} ?"
+          },
+          {
+            "type": "PlainText",
+            "value": "Do you want to watch {MediaTitle} ?"
+          },
+          {
+            "type": "PlainText",
+            "value": "Would you like to grab {MediaTitle} ?"
+          },
+          {
+            "type": "PlainText",
+            "value": "Would you like to download {MediaTitle} ?"
+          },
+          {
+            "type": "PlainText",
+            "value": "Would you like to add {MediaTitle} ?"
+          }
+        ],
+        "id": "Elicit.Slot.1701307936620.257031659198"
+      }
+    ]
+  }
+}

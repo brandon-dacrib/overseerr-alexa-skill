@@ -1,0 +1,12 @@
+{
+  "askToolkitStatesVersion": "2020-04-15",
+  "profiles": {
+    "brandon": {
+      "skillId": "amzn1.ask.skill.5bcd0810-57dc-4dec-8b0c-0ac70e19ed0a",
+      "skillMetadata": {
+        "eTag": "e93cbe6e35cb3c86838cdfc5e56eeb4d",
+        "lastDeployHash": "kRyhcQ8JfN3iAXA0XxN9JuE78VE="
+      }
+    }
+  }
+}

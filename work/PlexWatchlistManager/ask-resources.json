@@ -1,0 +1,11 @@
+{
+  "askToolkitResourcesVersion": "2020-04-15",
+  "profiles": {
+    "brandon": {
+      "skillId": "amzn1.ask.skill.5bcd0810-57dc-4dec-8b0c-0ac70e19ed0a",
+      "skillMetadata": {
+        "src": "skill-package"
+      }
+    }
+  }
+}
